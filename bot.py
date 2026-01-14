@@ -1,14 +1,17 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-
 import os
-BOT_TOKEN = os.getenv("8583042031:AAG9b8oALRGGcnd-Xih63NRYLRuCe8AizDw")
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackContext
+from dotenv import load_dotenv
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    first_name = update.effective_user.first_name
+load_dotenv()
+TOKEN = os.getenv("8583042031:AAG9b8oALRGGcnd-Xih63NRYLRuCe8AizDw")
 
-    text = f"""
-🎰 Բարի գալուստ {first_name}
+async def start(update: Update, context: CallbackContext) -> None:
+    user = update.effective_user
+    user_name = user.first_name if user.first_name else "Ընկեր"
+    
+    message_text = f"""
+🎰 Բարի գալուստ {user_name}
 
 Պատրա՞ստ ես փորձել քո բախտը և բացել մեծ շահումների դուռը 💰
 
@@ -26,15 +29,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 🎯 ՊՐՈՄՈԿՈԴ՝ VGR060
 """
-
-    keyboard = [
-        [InlineKeyboardButton("🎰 ՍՏԱՆԱԼ 🎰", url="https://t.me/VGR060Bot/casino")]
-    ]
+    
+    keyboard = [[InlineKeyboardButton("🎰 ՍՏԱՆԱԼ 🎰", url="https://t.me/VGR060Bot/casino")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(
+        text=message_text,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True
+    )
 
-    await update.message.reply_text(text, reply_markup=reply_markup)
+def main() -> None:
+    application = Application.builder().token(TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    print("🤖 Բոտը գործարկված է...")
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.run_polling()
+    main()
